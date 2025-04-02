@@ -1,0 +1,145 @@
+import pygame
+import random
+import sys
+
+pygame.init()
+
+
+WIDTH, HEIGHT = 800, 600
+screen = pygame.display.set_mode((WIDTH, HEIGHT))
+pygame.display.set_caption("Racer Game")
+clock = pygame.time.Clock()
+
+
+WHITE = (255, 255, 255)
+GREEN = (0, 255, 0)
+RED = (255, 0, 0)
+YELLOW = (255, 255, 0)
+
+
+player_speed = 5
+enemy_speed = 3
+coin_radius = 15
+score = 0
+level_up_threshold = 5
+font = pygame.font.SysFont("Arial", 24)
+
+
+class Player(pygame.sprite.Sprite):
+    def __init__(self):
+        super().__init__()
+        self.image = pygame.Surface((50, 50))
+        self.image.fill(GREEN)
+        self.rect = self.image.get_rect(center=(WIDTH // 2, HEIGHT - 80))
+
+    def update(self, keys):
+        if keys[pygame.K_LEFT] and self.rect.left > 0:
+            self.rect.x -= player_speed
+        if keys[pygame.K_RIGHT] and self.rect.right < WIDTH:
+            self.rect.x += player_speed
+
+
+class Coin(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((coin_radius * 2, coin_radius * 2), pygame.SRCALPHA)
+        pygame.draw.circle(self.image, YELLOW, (coin_radius, coin_radius), coin_radius)
+        self.rect = self.image.get_rect(center=(x, y))
+
+
+class Enemy(pygame.sprite.Sprite):
+    def __init__(self, x, y):
+        super().__init__()
+        self.image = pygame.Surface((50, 100))
+        self.image.fill(RED)
+        self.rect = self.image.get_rect(center=(x, y))
+
+    def update(self):
+        self.rect.y += enemy_speed
+        if self.rect.top > HEIGHT:
+            self.rect.bottom = 0
+            self.rect.x = random.randint(50, WIDTH - 50)
+
+
+def generate_coin():
+    return Coin(random.randint(50, WIDTH - 50), random.randint(-100, -20))
+
+
+def generate_enemy():
+    return Enemy(random.randint(50, WIDTH - 50), random.randint(-100, -20))
+
+
+player = Player()
+all_sprites = pygame.sprite.Group(player)
+coins_group = pygame.sprite.Group()
+enemies_group = pygame.sprite.Group()
+
+
+for _ in range(5):
+    coin = generate_coin()
+    all_sprites.add(coin)
+    coins_group.add(coin)
+
+
+for _ in range(3):
+    enemy = generate_enemy()
+    all_sprites.add(enemy)
+    enemies_group.add(enemy)
+
+running = True
+while running:
+    screen.fill(WHITE)
+
+    for event in pygame.event.get():
+        if event.type == pygame.QUIT:
+            running = False
+
+    keys = pygame.key.get_pressed()
+    player.update(keys)
+
+    for enemy in enemies_group:
+        enemy.update()
+
+    
+    collected_coins = pygame.sprite.spritecollide(player, coins_group, True)
+    for _ in collected_coins:
+        score += 1
+        player_speed += 0.2
+        if score % level_up_threshold == 0:
+            enemy_speed += 1
+
+    
+    if pygame.sprite.spritecollide(player, enemies_group, False):
+        font_big = pygame.font.SysFont("Arial", 50)
+        game_over_text = font_big.render("GAME OVER!", True, RED)
+        screen.blit(game_over_text, (WIDTH // 2 - 150, HEIGHT // 2))
+        pygame.display.update()
+        pygame.time.wait(2000)
+        running = False
+
+    
+    if random.random() < 0.03:
+        coin = generate_coin()
+        all_sprites.add(coin)
+        coins_group.add(coin)
+
+    
+    if random.random() < 0.02:
+        enemy = generate_enemy()
+        all_sprites.add(enemy)
+        enemies_group.add(enemy)
+
+    all_sprites.draw(screen)
+
+    
+    score_text = font.render(f"Score: {score}", True, (0, 0, 0))
+    screen.blit(score_text, (10, 10))
+
+    speed_text = font.render(f"Speed: {round(player_speed, 1)}", True, (0, 0, 0))
+    screen.blit(speed_text, (WIDTH - 150, 10))
+
+    pygame.display.update()
+    clock.tick(60)
+
+pygame.quit()
+sys.exit()
