@@ -1,0 +1,47 @@
+import tkinter as tk
+import math
+
+# Фигураларды салу функциялары
+def draw_square(canvas, x, y, side):
+    # Төртбұрыш (квадрат) салу
+    canvas.create_rectangle(x, y, x + side, y + side)
+
+def draw_right_triangle(canvas, x, y, base, height):
+    # Тік бұрышты үшбұрыш салу
+    points = [x, y, x + base, y, x, y - height]
+    canvas.create_polygon(points, outline='black', fill='', width=2)
+
+def draw_equilateral_triangle(canvas, x, y, side):
+    # Тең бүйірлі үшбұрыш салу
+    height = int(side * math.sqrt(3) / 2)  # Үшбұрыштың биіктігі
+    points = [x, y, x + side, y, x + side // 2, y - height]
+    canvas.create_polygon(points, outline='black', fill='', width=2)
+
+def draw_rhombus(canvas, x, y, diagonal1, diagonal2):
+    # Ромб салу
+    half_d1 = diagonal1 // 2
+    half_d2 = diagonal2 // 2
+    points = [x - half_d1, y, x, y - half_d2, x + half_d1, y, x, y + half_d2]
+    canvas.create_polygon(points, outline='black', fill='', width=2)
+
+# Негізгі терезені құру
+def main():
+    # Терезе мен канвас құру
+    root = tk.Tk()
+    root.title("Графикалық фигуралар")
+
+    canvas = tk.Canvas(root, width=800, height=600)
+    canvas.pack()
+
+    # Фигураларды салу
+    draw_square(canvas, 50, 50, 100)
+    draw_right_triangle(canvas, 200, 150, 100, 100)
+    draw_equilateral_triangle(canvas, 350, 250, 100)
+    draw_rhombus(canvas, 500, 350, 120, 80)
+
+    # Бағдарламаны бастау
+    root.mainloop()
+
+# Бағдарламаны іске қосу
+if __name__ == "__main__":
+    main()
